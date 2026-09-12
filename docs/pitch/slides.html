@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>AppealGraph Pitch</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    background: #0f1115;
+    color: #e6e8ec;
+  }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    padding: 64px 80px;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide:last-child { page-break-after: auto; }
+  .kicker {
+    color: #5b8def;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  h1 { font-size: 52px; margin: 0 0 20px; line-height: 1.2; }
+  h2 { font-size: 34px; margin: 0 0 30px; }
+  p.lead { font-size: 20px; color: #9aa3b2; line-height: 1.6; max-width: 900px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .card {
+    background: #171a21;
+    border: 1px solid #2a2f3a;
+    border-radius: 14px;
+    padding: 26px 28px;
+  }
+  .card h3 { margin: 0 0 10px; font-size: 20px; color: #5b8def; }
+  .card p { margin: 0; font-size: 15px; color: #c4c9d4; line-height: 1.6; }
+  .badge-row { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+  .badge {
+    background: rgba(91,141,239,0.15);
+    color: #5b8def;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .footer-url {
+    position: absolute;
+    bottom: 40px; left: 80px;
+    color: #5b8def;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .pagenum { position: absolute; bottom: 40px; right: 80px; color: #4b5160; font-size: 14px; }
+  .flow { display: flex; align-items: center; gap: 18px; margin-top: 40px; }
+  .flow .box {
+    background: #171a21;
+    border: 1px solid #2a2f3a;
+    border-radius: 12px;
+    padding: 22px 26px;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+    flex: 1;
+  }
+  .flow .box.n { border-color: #f2b84b; color: #f2b84b; }
+  .flow .box.d { border-color: #3ecf8e; color: #3ecf8e; }
+  .flow .box.l { border-color: #a06cd5; color: #a06cd5; }
+  .flow .arrow { color: #4b5160; font-size: 24px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 15px; }
+  th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid #2a2f3a; }
+  th { color: #9aa3b2; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+  .status-live { color: #3ecf8e; font-weight: 700; }
+  .status-pending { color: #f2b84b; font-weight: 700; }
+  .center { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
+  code.small { font-size: 15px; background: #0d0f14; padding: 3px 10px; border-radius: 6px; border: 1px solid #2a2f3a; }
+</style>
+</head>
+<body>
+
+<!-- 1. Title -->
+<div class="slide">
+  <div class="center">
+    <div class="kicker">Daytona HackSprint Tokyo</div>
+    <h1 style="font-size:76px;">⚖️ AppealGraph</h1>
+    <p class="lead" style="text-align:center; margin: 0 auto;">
+      情報公開・審査請求における「機関 × 非開示条文 × 反論ロジック × 判例」を<br/>
+      Neo4jのグラフで管理し、Daytonaサンドボックスが判例引用のハルシネーションを検証する<br/>
+      自律検証エージェント
+    </p>
+    <div class="badge-row" style="margin-top:40px;">
+      <span class="badge">Neo4j</span>
+      <span class="badge">Daytona</span>
+      <span class="badge">Nosana</span>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Problem -->
+<div class="slide">
+  <div class="kicker">Problem</div>
+  <h2>情報公開請求は「不開示決定への反論」で挫折する</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>市民側の壁</h3>
+      <p>年間30万件以上の情報公開請求のうち、90%の市民が制度を使いこなせない。不開示決定を受けても、どの判例・論理で反論すればよいか分からず諦めてしまう。弁護士費用（10万円規模）も払えない。</p>
+    </div>
+    <div class="card">
+      <h3>AI生成側の壁</h3>
+      <p>LLMに反論書を書かせると、もっともらしいが実在しない判例（ハルシネーション）を引用するリスクがある。法律文書でこれは致命的な信頼性問題になる。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Solution -->
+<div class="slide">
+  <div class="kicker">Solution</div>
+  <h2>グラフに実在する根拠だけで反論書を組み立て、サンドボックスで検証する</h2>
+  <div class="flow">
+    <div class="box n">Neo4j<br/>グラフから機関・条文・<br/>反論ロジック・判例を取得</div>
+    <div class="arrow">→</div>
+    <div class="box l">ドラフト生成<br/>（グラフの内容のみを根拠に）</div>
+    <div class="arrow">→</div>
+    <div class="box d">Daytona<br/>サンドボックスで<br/>判例引用の実在性を検証</div>
+  </div>
+  <p class="lead" style="margin-top:36px;">
+    生成された反論書に含まれる判例引用を正規表現で抽出し、Neo4jグラフに実在する
+    判例リストと突き合わせる検証コードを、その場でDaytonaサンドボックスに投げて実行。
+    捏造判例が混入していれば exit_code=1 で即座に検知する。
+  </p>
+</div>
+
+<!-- 4. Graph schema -->
+<div class="slide">
+  <div class="kicker">Graph Schema (Neo4j)</div>
+  <h2>17機関・68条文・40反論ロジック・判例をグラフ化</h2>
+  <div class="card" style="font-family: monospace; font-size: 17px; line-height: 2; padding: 32px 40px;">
+    (:機関 {authority, category, review_authority})<br/>
+    &nbsp;&nbsp;-[:規定する]-&gt;(:非開示条文 {number, name, description})<br/>
+    &nbsp;&nbsp;-[:該当する]-&gt;(:反論パターン {category, number})<br/>
+    &nbsp;&nbsp;-[:主張]-&gt;(:反論ロジック {text})<br/>
+    &nbsp;&nbsp;-[:引用]-&gt;(:判例 {citation})
+  </div>
+  <p class="lead" style="margin-top:24px;">
+    同じ category+number の反論パターンは複数機関から共有されるため、
+    「この論理・判例は他の自治体・警察・裁判所でも使える」という横断参照ができる。
+    データは自治体・警察・裁判所の条例／情報公開規程／取扱要綱（civic-lens由来、MITライセンス）を活用。
+  </p>
+</div>
+
+<!-- 5. Sponsor stack -->
+<div class="slide">
+  <div class="kicker">Sponsor Product Usage</div>
+  <h2>3スポンサー技術の統合</h2>
+  <table>
+    <tr><th>技術</th><th>役割</th><th>状態</th></tr>
+    <tr>
+      <td><b>Neo4j</b></td>
+      <td>機関・条文・反論ロジック・判例の関係性グラフ管理、GraphRAG的なコンテキスト取得</td>
+      <td class="status-live">● 稼働中（Aura）</td>
+    </tr>
+    <tr>
+      <td><b>Daytona</b></td>
+      <td>生成されたドラフトの判例引用が実在するかを、サンドボックス内で都度コード実行して検証</td>
+      <td class="status-live">● 稼働中</td>
+    </tr>
+    <tr>
+      <td><b>Nosana</b></td>
+      <td>DeepSeek-R1-Distill-Qwen-1.5Bをホストし、グラフコンテキストのみを根拠にドラフト生成</td>
+      <td class="status-pending">● デプロイ済・GPU割当待ち<br/>（未割当時はテンプレ生成に自動フォールバック）</td>
+    </tr>
+  </table>
+</div>
+
+<!-- 6. Demo -->
+<div class="slide">
+  <div class="kicker">Demo</div>
+  <h2>ライブデモ: appeal-graph.vercel.app</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>グラフビュー</h3>
+      <p>138ノード（17機関・68条文・11反論パターン・40反論ロジック・判例）をvis.jsでインタラクティブに可視化。</p>
+    </div>
+    <div class="card">
+      <h3>検証フロー</h3>
+      <p>機関・条文を選択 →「グラフから反論書を生成 → Daytonaで検証」→ ドラフト・引用元判例・サンドボックス検証結果（exit_code）を表示。</p>
+    </div>
+  </div>
+  <p class="lead" style="margin-top:30px;">
+    正常系: 安城市 / 第7条第2号（法人情報）→ 最判平14.2.8を正しく引用 → 検証OK<br/>
+    異常系: ドラフトに捏造判例を混入 → Daytonaサンドボックスが exit_code=1 で検知
+  </p>
+</div>
+
+<!-- 7. Links -->
+<div class="slide">
+  <div class="center">
+    <h1>Try it</h1>
+    <p class="lead" style="text-align:center;">
+      Demo: <code class="small">https://appeal-graph.vercel.app</code><br/><br/>
+      GitHub: <code class="small">https://github.com/t-sakaki/appeal-graph</code>
+    </p>
+  </div>
+</div>
+
+</body>
+</html>
