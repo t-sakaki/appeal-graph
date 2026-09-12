@@ -62,6 +62,59 @@ class GraphContext:
             }
 
 
+    def get_full_graph(self) -> dict:
+        """可視化用に、グラフ全体をvis.js形式のnodes/edgesとして取得する。"""
+        nodes: dict[str, dict] = {}
+        edges: list[dict] = []
+
+        def add_node(node_id: str, label: str, group: str, title: str = ""):
+            if node_id not in nodes:
+                nodes[node_id] = {"id": node_id, "label": label, "group": group, "title": title or label}
+
+        with self.driver.session() as session:
+            result = session.run(
+                """
+                MATCH (a:機関)-[:規定する]->(g:非開示条文)
+                OPTIONAL MATCH (g)-[:該当する]->(p:反論パターン)
+                OPTIONAL MATCH (p)-[:主張]->(r:反論ロジック)
+                OPTIONAL MATCH (p)-[:引用]->(c:判例)
+                RETURN a.key AS a_key, a.authority AS a_name, a.category AS a_category,
+                       g.authority_key AS g_key, g.number AS g_number, g.name AS g_name,
+                       p.category AS p_category, p.number AS p_number,
+                       r.text AS r_text, c.citation AS c_citation
+                """
+            )
+            for row in result:
+                a_id = f"機関:{row['a_key']}"
+                add_node(a_id, row["a_name"], "機関")
+
+                g_id = f"条文:{row['g_key']}:{row['g_number']}"
+                add_node(g_id, f"{row['g_number']} {row['g_name']}", "非開示条文")
+                edges.append({"from": a_id, "to": g_id})
+
+                if row["p_number"]:
+                    p_id = f"反論パターン:{row['p_category']}:{row['p_number']}"
+                    add_node(p_id, f"{row['p_category']}/{row['p_number']}", "反論パターン")
+                    edges.append({"from": g_id, "to": p_id})
+
+                    if row["r_text"]:
+                        r_id = f"反論ロジック:{hash(row['r_text'])}"
+                        add_node(r_id, row["r_text"][:20] + "…", "反論ロジック", title=row["r_text"])
+                        edges.append({"from": p_id, "to": r_id})
+
+                    if row["c_citation"]:
+                        c_id = f"判例:{row['c_citation']}"
+                        add_node(c_id, row["c_citation"], "判例")
+                        edges.append({"from": p_id, "to": c_id})
+
+        # 同一ペアの重複エッジを除去
+        unique_edges = {(e["from"], e["to"]) for e in edges}
+        return {
+            "nodes": list(nodes.values()),
+            "edges": [{"from": f, "to": t} for f, t in unique_edges],
+        }
+
+
 if __name__ == "__main__":
     ctx = GraphContext()
     for row in ctx.list_authorities()[:5]:

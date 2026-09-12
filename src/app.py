@@ -14,6 +14,7 @@ from agent import build_draft, build_verification_code
 from graph_context import GraphContext
 from nosana_client import NOSANA_DEPLOYMENT_ID, generate_draft_via_nosana
 from sandbox_runner import SandboxRunner
+from ui import INDEX_HTML
 
 app = FastAPI(title="Toushin Graph Copilot API")
 
@@ -39,16 +40,7 @@ class VerifyResponse(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return """
-    <html><body style="font-family: sans-serif; max-width: 720px; margin: 40px auto;">
-    <h1>Toushin Graph Copilot</h1>
-    <p>Neo4jの法令グラフ + Daytonaサンドボックスによる判例引用検証API。</p>
-    <ul>
-      <li><a href="/authorities">GET /authorities</a> — 対応機関・条文一覧</li>
-      <li>GET /verify?authority_key=anjo-city&article_number=第7条第2号</li>
-    </ul>
-    </body></html>
-    """
+    return INDEX_HTML
 
 
 @app.get("/authorities")
@@ -56,6 +48,15 @@ def list_authorities():
     graph = GraphContext()
     try:
         return graph.list_authorities()
+    finally:
+        graph.close()
+
+
+@app.get("/graph")
+def get_graph():
+    graph = GraphContext()
+    try:
+        return graph.get_full_graph()
     finally:
         graph.close()
 
