@@ -1,0 +1,3 @@
+daytona
+neo4j
+python-dotenv
