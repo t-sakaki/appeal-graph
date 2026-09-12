@@ -1,3 +1,7 @@
 daytona
 neo4j
 python-dotenv
+fastapi
+uvicorn
+requests
+pydantic
