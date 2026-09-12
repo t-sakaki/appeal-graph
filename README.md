@@ -1,10 +1,13 @@
-# 裁決・答申グラフ Copilot（GraphSandbox Copilot: 情報公開版）
+# AppealGraph
 
 Daytona HackSprint Tokyo 向け MVP。
 情報公開・審査請求における「機関 → 非開示条文 → 反論ロジック → 判例」の
 関係性を **Neo4j** のグラフとして管理し、そのコンテキストのみを根拠に
-反論書ドラフトを生成する。生成したドラフトが実在する判例のみを引用しているか
+反論書（Appeal）ドラフトを生成する。生成したドラフトが実在する判例のみを引用しているか
 （LLMの判例ハルシネーション対策）を **Daytona** のサンドボックス内で検証する。
+
+🔗 デモ: https://appeal-graph.vercel.app
+🔗 リポジトリ: https://github.com/t-sakaki/appeal-graph
 
 データは [civic-lens](https://github.com/t-sakaki/civic-lens) の
 条例・反論ロジック資産（17機関: 自治体・警察・裁判所）を再利用している。
@@ -25,7 +28,7 @@ Daytona HackSprint Tokyo 向け MVP。
 ## 構成
 
 ```
-toushin-graph-copilot/
+appeal-graph/
 ├── civic_lens_data/authorities/*.json   # civic-lens由来の17機関データ
 ├── civic_lens_ordinance_logic.py        # civic-lens由来の反論ロジック定義
 ├── src/

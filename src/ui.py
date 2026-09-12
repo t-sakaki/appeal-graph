@@ -5,7 +5,7 @@ INDEX_HTML = """<!doctype html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Toushin Graph Copilot</title>
+<title>AppealGraph</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/standalone/umd/vis-network.min.js"></script>
 <style>
   :root {
@@ -103,7 +103,7 @@ INDEX_HTML = """<!doctype html>
 </head>
 <body>
 <header>
-  <h1>⚖️ Toushin Graph Copilot</h1>
+  <h1>⚖️ AppealGraph</h1>
   <p>Neo4jグラフ × Daytonaサンドボックスによる判例引用検証</p>
 </header>
 <div id="graph"></div>

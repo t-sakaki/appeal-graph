@@ -16,7 +16,7 @@ from nosana_client import NOSANA_DEPLOYMENT_ID, generate_draft_via_nosana
 from sandbox_runner import SandboxRunner
 from ui import INDEX_HTML
 
-app = FastAPI(title="Toushin Graph Copilot API")
+app = FastAPI(title="AppealGraph API")
 
 app.add_middleware(
     CORSMiddleware,
