@@ -64,6 +64,47 @@ def generate_draft_text(endpoint_url: str, prompt: str, max_tokens: int = 500) -
     return resp.json()["choices"][0]["message"]["content"]
 
 
+NOSANA_DEPLOYMENT_ID = os.environ.get("NOSANA_DEPLOYMENT_ID", "")
+
+
+def generate_draft_via_nosana(context: dict, timeout_seconds: float = 3.0) -> str | None:
+    """Nosana上のLLMエンドポイントがオンラインならドラフト本文を生成して返す。
+
+    オフライン・未設定・エラー時はNoneを返し、呼び出し側でテンプレート生成に
+    フォールバックできるようにする（分散マーケット型GPUのため起動タイミングが
+    読めないことへの対策）。
+    """
+    if not NOSANA_DEPLOYMENT_ID:
+        return None
+
+    try:
+        endpoint_url = get_endpoint_url(NOSANA_DEPLOYMENT_ID)
+        if not endpoint_url:
+            return None
+
+        prompt = (
+            "以下の情報のみを根拠に、審査請求における反論書の本文を日本語で簡潔に作成してください。"
+            "この情報にない主張や判例は絶対に創作しないでください。\n\n"
+            f"不開示事由: {context['ground_name']}\n"
+            f"条文の内容: {context['ground_description']}\n"
+            "反論ロジック:\n" + "\n".join(f"- {r}" for r in context["reasonings"])
+        )
+        resp = requests.post(
+            f"{endpoint_url}/v1/chat/completions",
+            json={
+                "model": NOSANA_MODEL_NAME,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 500,
+                "stream": False,
+            },
+            timeout=timeout_seconds,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
+    except Exception:
+        return None
+
+
 if __name__ == "__main__":
     import sys
 

@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from agent import build_draft, build_verification_code
 from graph_context import GraphContext
+from nosana_client import NOSANA_DEPLOYMENT_ID, generate_draft_via_nosana
 from sandbox_runner import SandboxRunner
 
 app = FastAPI(title="Toushin Graph Copilot API")
@@ -29,6 +30,7 @@ class VerifyResponse(BaseModel):
     review_authority: str
     ground_name: str
     draft_body: str
+    draft_source: str
     citations_in_graph: list[str]
     sandbox_exit_code: int
     sandbox_result: dict
@@ -67,7 +69,12 @@ def verify(authority_key: str, article_number: str):
         if not context:
             raise HTTPException(status_code=404, detail="authority_key/article_number not found")
 
-        draft = build_draft(context)
+        nosana_body = generate_draft_via_nosana(context)
+        if nosana_body:
+            draft = {"body": nosana_body, "source": "nosana"}
+        else:
+            draft = build_draft(context)
+            draft["source"] = "template"
         code = build_verification_code(draft, context["citations"])
         result = sandbox.run_code(code)
 
@@ -78,6 +85,7 @@ def verify(authority_key: str, article_number: str):
             review_authority=context["review_authority"],
             ground_name=context["ground_name"],
             draft_body=draft["body"],
+            draft_source=draft["source"],
             citations_in_graph=context["citations"],
             sandbox_exit_code=result["exit_code"],
             sandbox_result={"raw": result["result"]},
