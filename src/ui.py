@@ -99,6 +99,40 @@ INDEX_HTML = """<!doctype html>
   .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .legend span { font-size: 11px; padding: 4px 8px; border-radius: 6px; }
   #empty { color: var(--muted); font-size: 13px; }
+
+  #nodePopup {
+    position: fixed;
+    display: none;
+    max-width: 340px;
+    background: #0d0f14;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 20;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  #nodePopup .popup-type {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  #nodePopup dl { margin: 0; }
+  #nodePopup dt { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  #nodePopup dt:first-child { margin-top: 0; }
+  #nodePopup dd { margin: 2px 0 0; word-break: break-word; }
+  #nodePopup .popup-close {
+    position: absolute;
+    top: 8px; right: 10px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -107,6 +141,7 @@ INDEX_HTML = """<!doctype html>
   <p>Neo4jグラフ × Daytonaサンドボックスによる判例引用検証</p>
 </header>
 <div id="graph"></div>
+<div id="nodePopup"></div>
 <div id="panel">
   <h2>1. 検証したい機関・条文を選択</h2>
   <select id="authoritySelect"></select>
@@ -127,6 +162,40 @@ const groupColors = {
   "判例": "#ef5b5b",
 };
 
+function renderPopupContent(node) {
+  const detail = node.detail || {};
+  const rows = Object.entries(detail)
+    .filter(([, v]) => v)
+    .map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`)
+    .join("");
+  return `
+    <span class="popup-close" onclick="hideNodePopup(true)">✕</span>
+    <div class="popup-type">${node.group}</div>
+    <dl>${rows}</dl>
+  `;
+}
+
+let popupPinned = false;
+let lastMouse = { x: 0, y: 0 };
+
+function showNodePopup(node, pos) {
+  const popup = document.getElementById("nodePopup");
+  popup.innerHTML = renderPopupContent(node);
+  popup.style.display = "block";
+
+  const maxLeft = window.innerWidth - 360;
+  const left = Math.min(pos.x + 16, maxLeft);
+  const top = Math.min(pos.y + 16, window.innerHeight - 200);
+  popup.style.left = `${Math.max(8, left)}px`;
+  popup.style.top = `${Math.max(60, top)}px`;
+}
+
+function hideNodePopup(unpin) {
+  if (unpin) popupPinned = false;
+  if (popupPinned) return;
+  document.getElementById("nodePopup").style.display = "none";
+}
+
 async function loadGraph() {
   const res = await fetch("/graph");
   const data = await res.json();
@@ -144,6 +213,31 @@ async function loadGraph() {
     physics: { stabilization: true, barnesHut: { gravitationalConstant: -4000, springLength: 120 } },
     interaction: { hover: true },
   });
+
+  document.getElementById("graph").addEventListener("mousemove", (e) => {
+    lastMouse = { x: e.clientX, y: e.clientY };
+  });
+
+  network.on("hoverNode", (params) => {
+    if (popupPinned) return;
+    showNodePopup(nodes.get(params.node), lastMouse);
+  });
+
+  network.on("blurNode", () => {
+    if (!popupPinned) hideNodePopup(false);
+  });
+
+  network.on("click", (params) => {
+    if (params.nodes.length > 0) {
+      popupPinned = true;
+      showNodePopup(nodes.get(params.nodes[0]), lastMouse);
+    } else {
+      hideNodePopup(true);
+    }
+  });
+
+  network.on("dragStart", () => hideNodePopup(true));
+  network.on("zoom", () => hideNodePopup(true));
 }
 
 async function loadAuthorities() {
